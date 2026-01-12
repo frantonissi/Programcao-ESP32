@@ -1,0 +1,35 @@
+#include <Arduino.h>
+
+#define LED 2
+#define BOTAO 15
+
+unsigned long tempo_anterior = 0;
+const unsigned long intervalo = 2000;
+
+int estadoAnterior = HIGH;
+bool ledLigado = false;
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  pinMode(BOTAO, INPUT_PULLUP);
+}
+
+void loop() {
+  unsigned long agora = millis();
+  int estado = digitalRead(BOTAO);
+
+  // Detecta o evento: botão foi pressionado
+  if (estadoAnterior == HIGH && estado == LOW) {
+    digitalWrite(LED, HIGH);        // liga o LED
+    tempo_anterior = agora;         // inicia o temporizador
+    ledLigado = true;
+  }
+
+  // Controle do tempo: desliga após 2 segundos
+  if (ledLigado && (agora - tempo_anterior >= intervalo)) {
+    digitalWrite(LED, LOW);
+    ledLigado = false;
+  }
+
+  estadoAnterior = estado;
+}
