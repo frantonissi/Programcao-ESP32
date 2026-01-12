@@ -1,0 +1,85 @@
+  #include <Arduino.h>
+
+  #define LED 2 
+  #define BOTAO 15
+  #define BOTAO1 13
+
+  // Configurações do PWM
+  const int frequencia = 5000;
+  const int canal = 0;
+  const int resolucao = 8;
+
+  // Temporização
+  const unsigned long intervalo = 3000;
+  unsigned long tempo_anterior = 0;
+
+  enum Niveis{
+    DESLIGADO,
+    BAIXO,
+    MEDIO,
+    ALTO,
+    EMERGENCIA
+  };
+
+  Niveis estadoAtual = DESLIGADO;
+
+  void setup() {
+    ledcSetup(canal, frequencia, resolucao);
+    ledcAttachPin(LED, canal);
+    pinMode(BOTAO, INPUT_PULLUP);
+    pinMode(BOTAO1, INPUT_PULLUP);
+  }
+
+  void loop() {
+    unsigned long agora = millis();
+    int estadoBotaoPrinc = digitalRead(BOTAO1);
+    int estadoBotaoEmerg = digitalRead(BOTAO);
+
+    if(BOTAO1 == LOW && estadoAtual == DESLIGADO){
+      estadoAtual = BAIXO;
+      tempo_anterior = agora;
+    }
+
+    if(estadoBotaoEmerg == LOW){
+      estadoAtual = EMERGENCIA;
+    }else if(estadoAtual == EMERGENCIA){
+        estadoAtual = BAIXO; 
+        tempo_anterior = agora;
+      }
+
+
+    if (estadoAtual == EMERGENCIA) {
+      ledcWrite(canal, 0);   // Desliga imediatamente
+      return;                // Sai do loop
+    }
+
+
+
+    if(agora -tempo_anterior >= intervalo){
+
+    switch(estadoAtual){
+
+      case BAIXO:
+      ledcWrite(canal, 85);
+      estadoAtual = MEDIO;
+      break;
+
+      case MEDIO:
+      ledcWrite(canal, 170);
+      estadoAtual = ALTO;
+      break;
+
+      case ALTO:
+      ledcWrite(canal, 255);
+      estadoAtual = BAIXO;
+      break;
+
+    }
+      tempo_anterior = agora; 
+
+      
+    }
+
+
+
+  }
